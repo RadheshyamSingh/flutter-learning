@@ -1,68 +1,100 @@
-name: Flutter
-
+name: Build Automation
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
-  flutter_job:
-    runs-on: macos-latest
-    timeout-minutes: 8
-
+  flutter_test:
+    name: Run flutter test and analyze
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      # Clones the project on the machine
+      - uses: actions/checkout@v2
         env:
           GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
-      - uses: actions/setup-java@v4
+      # Installs Java on this machine
+      - uses: actions/setup-java@v1
         with:
-          distribution: 'zulu'
-          java-version: '11'
+          java-version: "12.x"
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      # Installs flutter and related dependency on this machine
+      - uses: subosito/flutter-action@v1
         with:
-          channel: 'stable'
+          channel: "stable"
           flutter-version: '3.22.1'
 
-      - name: Install dependencies
-        run: flutter pub get
+      # Fetches proj dependencies from pub
+      - run: flutter pub get
 
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
+      # Verifies if the dart code is formatted well
+      - run: dart format --output=none --set-exit-if-changed .
+        # --set-exit-if-changed stops execution if the any code is not well formatted
+        # --output=none prints files which needs to be formatted
 
-      - name: Analyze project source
-        run: flutter analyze --fatal-warnings
+      # Checks for Symantic errors. Can be configured using analysis_options.yaml
+      - run: flutter analyze --fatal-warnings
+        # optionally use --fatal-warnings to stop execution if any warnings are found
 
-      - name: Run tests
-        run: flutter test
+      # Runs unit test
+      - run: flutter test
 
-      - name: Build apk
-        run: flutter build apk --release --split-per-abi
+  build_ios:
+    name: Build Flutter (iOS)
+    needs: [flutter_test]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
-      - name: Build ipa
-        run: |
-          flutter build ios --no-codesign
-          cd build/ios/iphoneos
-          mkdir Payload
-          cd Payload
-          ln -s ../Runner.app
-          cd ..
-          zip -r app.ipa Payload
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
 
-      - name: Push to release
-        uses: ncipollo/release-action@v1
+      # Required to run flutter commands
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+          flutter-version: '3.22.1'
+
+      - run: flutter pub get
+      - run: flutter clean
+      - run: flutter build ios --release --no-codesign
+
+  build_Android:
+    name: Build Flutter (Android)
+    needs: [flutter_test]
+    runs-on: ubuntu-latest
+    steps:
+      # Clones the project on the machine
+      - uses: actions/checkout@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+
+      # Installs Java on this machine
+      - uses: actions/setup-java@v1
+        with:
+          java-version: "12.x"
+
+      # Required to run flutter commands
+      - uses: subosito/flutter-action@v1
+        with:
+          channel: "stable"
+          flutter-version: '3.22.1'
+
+      - run: flutter pub get
+      - run: flutter clean
+      - run: flutter build apk --release --split-per-abi
+
+  push_to_release:
+    name: Push to GitHub Release
+    needs: [build_ios, build_Android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ncipollo/release-action@v1
         with:
           artifacts: "build/app/outputs/apk/debug/*, build/ios/iphoneos/app.ipa"
           tag: v1.0.${{ github.run_number}}
           token: ${{ secrets.TOKEN }}
-
-#      - name: Upload apk to Firebase distribution
-#        uses: wzieba/Firebase-Distribution-Github-Action@v1.7.0
-#        with:
-#          appId: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
-#          serviceCredentialsFileContent: ${{ secrets.SERVICE_CREDENTIALS_FILE_CONTENT }}
-#          groups: all_testers
-#          file: build/app/outputs/flutter-apk/app-release.apk
