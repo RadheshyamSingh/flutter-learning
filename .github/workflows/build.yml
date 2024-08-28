@@ -12,35 +12,17 @@ jobs:
     name: Run flutter test and analyze
     runs-on: ubuntu-latest
     steps:
-      # Clones the project on the machine
       - uses: actions/checkout@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-      # Installs Java on this machine
       - uses: actions/setup-java@v1
         with:
-          java-version: "12.x"
-
-      # Installs flutter and related dependency on this machine
+          java-version: "11.x"
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
-          flutter-version: '3.22.1'
-
-      # Fetches proj dependencies from pub
+          flutter-version: '3.13.0'
       - run: flutter pub get
-
-      # Verifies if the dart code is formatted well
       - run: dart format --output=none --set-exit-if-changed .
-        # --set-exit-if-changed stops execution if the any code is not well formatted
-        # --output=none prints files which needs to be formatted
-
-      # Checks for Symantic errors. Can be configured using analysis_options.yaml
       - run: flutter analyze --fatal-warnings
-        # optionally use --fatal-warnings to stop execution if any warnings are found
-
-      # Runs unit test
       - run: flutter test
 
   build_ios:
@@ -49,55 +31,66 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
       - uses: actions/setup-java@v1
         with:
-          java-version: "12.x"
-
-      # Required to run flutter commands
+          java-version: "11.x"
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
-          flutter-version: '3.22.1'
-
+          flutter-version: '3.13.0'
       - run: flutter pub get
       - run: flutter clean
       - run: flutter build ios --release --no-codesign
 
-  build_Android:
+  build_android:
     name: Build Flutter (Android)
     needs: [flutter_test]
     runs-on: ubuntu-latest
     steps:
-      # Clones the project on the machine
       - uses: actions/checkout@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-      # Installs Java on this machine
       - uses: actions/setup-java@v1
         with:
-          java-version: "12.x"
-
-      # Required to run flutter commands
+          java-version: "11.x"
       - uses: subosito/flutter-action@v1
         with:
           channel: "stable"
-          flutter-version: '3.22.1'
-
+          flutter-version: '3.13.0'
       - run: flutter pub get
       - run: flutter clean
       - run: flutter build apk --release --split-per-abi
 
   push_to_release:
     name: Push to GitHub Release
-    needs: [build_ios, build_Android]
+    needs: [build_ios, build_android]
     runs-on: ubuntu-latest
     steps:
-      - uses: ncipollo/release-action@v1
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
         with:
-          artifacts: "build/app/outputs/apk/debug/*, build/ios/iphoneos/app.ipa"
-          tag: v1.0.${{ github.run_number}}
-          token: ${{ secrets.TOKEN }}
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: Release v1.0.${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload APK
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          asset_name: app-arm64-v8a-release.apk
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload IPA
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/ios/iphoneos/app.ipa
+          asset_name: app.ipa
+          asset_content_type: application/octet-stream
