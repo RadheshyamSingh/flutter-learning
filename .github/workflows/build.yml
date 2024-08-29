@@ -45,17 +45,17 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.22.1'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Install Gradle
-        uses: eskatos/gradle-command-action@v2
-        with:
-          gradle-version: 7.6.3  # Replace with the desired Gradle version
-
-      - name: Generate Gradle Wrapper
-        run: gradle wrapper --gradle-version 7.6.3  # Replace with the desired Gradle version
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Install Gradle
+#        uses: eskatos/gradle-command-action@v2
+#        with:
+#          gradle-version: 7.6.3  # Replace with the desired Gradle version
+#
+#      - name: Generate Gradle Wrapper
+#        run: gradle wrapper --gradle-version 7.6.3  # Replace with the desired Gradle version
 
       - name: Ensure Gradle Wrapper Permissions
         run: chmod +x gradlew
@@ -72,6 +72,7 @@ jobs:
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/keystore.jks
           cd android
+          chmod +x gradlew
           ./gradlew assembleRelease -PkeyAlias=$KEY_ALIAS -PkeyPassword=$KEY_PASSWORD -PstorePassword=$KEYSTORE_PASSWORD -PstoreFile=/tmp/keystore.jks
 
 
