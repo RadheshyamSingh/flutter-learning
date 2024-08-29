@@ -31,31 +31,31 @@ jobs:
       - name: Run tests
         run: flutter test
 
-#  build_android_apk:
-#    runs-on: ubuntu-latest
-#    needs: analyze_and_test
-#
-#    steps:
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#
-#      - name: Set up Flutter
-#        uses: subosito/flutter-action@v2
-#        with:
-#          channel: 'stable'
-#          flutter-version: '3.22.1'
-#
-#      - name: Install dependencies
-#        run: flutter pub get
-#
-#      - name: Build APK
-#        run: flutter build apk --release --split-per-abi
-#
-#      - name: Upload Android APKs as artifacts
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: android-apks
-#          path: build/app/outputs/flutter-apk/app-*.apk
+  build_android_apk:
+    runs-on: ubuntu-latest
+    needs: analyze_and_test
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.22.1'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Upload Android APKs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apks
+          path: build/app/outputs/flutter-apk/app-*.apk
 
   build_ios:
     runs-on: macos-latest
@@ -108,11 +108,11 @@ jobs:
     needs: build_ios
 
     steps:
-#      - name: Download Android APKs
-#        uses: actions/download-artifact@v3
-#        with:
-#          name: android-apks
-#          path: .
+      - name: Download Android APKs
+        uses: actions/download-artifact@v3
+        with:
+          name: android-apks
+          path: .
 
       - name: Download iOS build
         uses: actions/download-artifact@v3
@@ -126,6 +126,8 @@ jobs:
       - name: Upload Android APK and iOS IPA to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "*.ipa"
+          artifacts: |
+            app-*.apk
+            *.ipa
           tag: v1.0.${{ github.run_number}}
           token: ${{ secrets.TOKEN }}
