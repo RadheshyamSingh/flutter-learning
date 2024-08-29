@@ -56,9 +56,9 @@ jobs:
 #
 #      - name: Generate Gradle Wrapper
 #        run: gradle wrapper --gradle-version 7.6.3  # Replace with the desired Gradle version
-
-      - name: Ensure Gradle Wrapper Permissions
-        run: chmod +x gradlew
+#
+#      - name: Ensure Gradle Wrapper Permissions
+#        run: chmod +x gradlew
 
 #      - name: Build APK
 #        run: flutter build apk --release --split-per-abi
