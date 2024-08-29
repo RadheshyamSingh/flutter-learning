@@ -51,17 +51,29 @@ jobs:
       - name: Build APK
         run: flutter build apk --release --split-per-abi
 
+      - name: Upload APKs as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: apks
+          path: build/app/outputs/flutter-apk/app-*.apk
+
   upload_release:
     runs-on: ubuntu-latest
     needs: build_apk
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Download APKs
+        uses: actions/download-artifact@v3
+        with:
+          name: apks
+          path: .
+
+      - name: List APKs
+        run: ls -R .
 
       - name: Upload APK to GitHub Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/flutter-apk/app-*.apk"
+          artifacts: "app-*.apk"
           tag: v1.0.${{ github.run_number}}
           token: ${{ secrets.TOKEN }}
