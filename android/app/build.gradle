@@ -23,6 +23,12 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0"
 }
 
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('key.properties')
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
+
 android {
     namespace = "com.example.build_automation"
     compileSdk = flutter.compileSdkVersion
@@ -46,18 +52,20 @@ android {
 
     signingConfigs {
         release {
-            if (project.hasProperty('keyAlias')) {
-                keyAlias project.keyAlias
-                keyPassword project.keyPassword
-                storeFile file(project.storeFile)
-                storePassword project.storePassword
-            }
+            //From decoded key
+            storeFile = file('key.jks')
+            //From key.properties
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storePassword keystoreProperties['storePassword']
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.release
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
     }
 }
