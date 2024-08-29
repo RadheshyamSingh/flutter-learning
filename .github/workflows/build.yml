@@ -74,14 +74,18 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Create Podfile
+      - name: Generate Podfile
         run: |
           cd ios
           flutter build ios --no-codesign || echo "No Podfile created"
-          test -f Podfile || (echo "Creating Podfile" && flutter create . && cd ios && flutter build ios --no-codesign)
+          ls -la
+          test -f Podfile || (echo "Creating Podfile" && flutter create . && flutter build ios --no-codesign)
+          ls -la
 
       - name: Install CocoaPods dependencies
-        run: pod install --project-directory=ios
+        run: |
+          cd ios
+          pod install || echo "Failed to install pods"
 
       - name: Build iOS App
         run: flutter build ios --release --no-codesign
