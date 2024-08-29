@@ -49,6 +49,17 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      - name: Install Gradle
+        uses: eskatos/gradle-command-action@v2
+        with:
+          gradle-version: 7.6.3  # Replace with the desired Gradle version
+
+      - name: Generate Gradle Wrapper
+        run: gradle wrapper --gradle-version 7.6.3  # Replace with the desired Gradle version
+
+      - name: Ensure Gradle Wrapper Permissions
+        run: chmod +x gradlew
+
 #      - name: Build APK
 #        run: flutter build apk --release --split-per-abi
 
@@ -60,7 +71,6 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/keystore.jks
-          chmod +x ./gradlew
           cd android
           ./gradlew assembleRelease -PkeyAlias=$KEY_ALIAS -PkeyPassword=$KEY_PASSWORD -PstorePassword=$KEYSTORE_PASSWORD -PstoreFile=/tmp/keystore.jks
 
