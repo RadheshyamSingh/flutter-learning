@@ -60,6 +60,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/keystore.jks
+          gradle wrapper
           chmod +x ./gradlew
           cd android
           ./gradlew assembleRelease -PkeyAlias=$KEY_ALIAS -PkeyPassword=$KEY_PASSWORD -PstorePassword=$KEYSTORE_PASSWORD -PstoreFile=/tmp/keystore.jks
