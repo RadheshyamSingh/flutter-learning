@@ -65,8 +65,5 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           artifacts: build/app/outputs/flutter-apk/*
-          tag: ${{ github.ref }}
+          tag: v1.0.${{ github.run_number}}
           token: ${{ secrets.TOKEN }}
-          name: Release ${{ github.ref_name }}
-          body: |
-            APK for version ${{ github.ref_name }} is ready.
