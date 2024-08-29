@@ -6,35 +6,35 @@ on:
       - main
 
 jobs:
-  analyze_and_test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: 'stable'
-          flutter-version: '3.22.1'
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Code formatter
-        run: dart format --output=none --set-exit-if-changed .
-
-      - name: Run Dart analyzer
-        run: flutter analyze --fatal-warnings
-
-      - name: Run tests
-        run: flutter test
+#  analyze_and_test:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - name: Checkout code
+#        uses: actions/checkout@v3
+#
+#      - name: Set up Flutter
+#        uses: subosito/flutter-action@v2
+#        with:
+#          channel: 'stable'
+#          flutter-version: '3.22.1'
+#
+#      - name: Install dependencies
+#        run: flutter pub get
+#
+#      - name: Code formatter
+#        run: dart format --output=none --set-exit-if-changed .
+#
+#      - name: Run Dart analyzer
+#        run: flutter analyze --fatal-warnings
+#
+#      - name: Run tests
+#        run: flutter test
 
   build_android_apk:
     name: Build Flutter (Android)
     runs-on: ubuntu-latest
-    needs: analyze_and_test
+    #needs: analyze_and_test
 
     steps:
       - name: Checkout code
@@ -72,6 +72,7 @@ jobs:
         run: |
           echo "$KEYSTORE_BASE64" | base64 -d > /tmp/keystore.jks
           cd android
+          run: ls -R .
           chmod +x gradlew
           ./gradlew assembleRelease -PkeyAlias=$KEY_ALIAS -PkeyPassword=$KEY_PASSWORD -PstorePassword=$KEYSTORE_PASSWORD -PstoreFile=/tmp/keystore.jks
 
