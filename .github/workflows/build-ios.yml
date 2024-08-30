@@ -1,7 +1,7 @@
 name: IOS Build Automation
 
 on:
-  push:
+  pull_request:
     branches:
       - main
 
