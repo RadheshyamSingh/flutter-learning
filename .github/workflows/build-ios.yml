@@ -1,4 +1,4 @@
-name: Build Automation
+name: IOS Build Automation
 
 on:
   push:
