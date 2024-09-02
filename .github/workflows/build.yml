@@ -1,7 +1,7 @@
 name: Build & Release Android and iOS builds for Flutter App
 
 on:
-  pull_request:
+  push:
     branches:
       - main
 
